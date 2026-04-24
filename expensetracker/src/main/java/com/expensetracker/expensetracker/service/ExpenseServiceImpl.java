@@ -9,11 +9,13 @@ import com.expensetracker.expensetracker.repository.ExpenseRepository;
 import com.expensetracker.expensetracker.utils.ExpenseMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -51,16 +53,19 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Expense> getExpenses(UUID userId, GetExpensesFilterDTO filters) {
+    public Page<Expense> getExpenses(UUID userId, GetExpensesFilterDTO filters) {
         log.info("Retrieving expenses for userId: {} with filters: {}", userId, filters);
         userService.getRequiredUser(userId);
 
         String category = filters != null ? filters.getCategory() : null;
         String sortParam = filters != null && filters.getSort() != null ? filters.getSort() : "date_desc";
         Sort sort = "date_asc".equals(sortParam) ? Sort.by(Sort.Direction.ASC, "date") : Sort.by(Sort.Direction.DESC, "date");
-        List<Expense> expenses = expenseRepository.findExpensesWithFilters(userId, category, sort);
+        int page = filters != null && filters.getPage() != null ? filters.getPage() : 0;
+        int size = filters != null && filters.getSize() != null ? filters.getSize() : 20;
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Expense> expenses = expenseRepository.findExpensesWithFilters(userId, category, pageable);
 
-        log.info("Retrieved {} expenses", expenses.size());
+        log.info("Retrieved {} expenses out of {} total", expenses.getNumberOfElements(), expenses.getTotalElements());
         return expenses;
     }
 

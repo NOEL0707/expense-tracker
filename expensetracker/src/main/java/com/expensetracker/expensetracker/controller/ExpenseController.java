@@ -4,6 +4,7 @@ import com.expensetracker.expensetracker.model.Expense;
 import com.expensetracker.expensetracker.dto.CreateExpenseDTO;
 import com.expensetracker.expensetracker.dto.ExpenseResponseDTO;
 import com.expensetracker.expensetracker.dto.GetExpensesFilterDTO;
+import com.expensetracker.expensetracker.dto.PagedResponseDTO;
 import com.expensetracker.expensetracker.service.ExpenseService;
 import com.expensetracker.expensetracker.utils.ExpenseMapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,18 +12,22 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import org.springframework.validation.annotation.Validated;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/expenses")
 @RequiredArgsConstructor
+@Validated
 @Tag(name = "Expense API", description = "API for managing expenses")
 public class ExpenseController {
 
@@ -52,20 +57,30 @@ public class ExpenseController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Expenses retrieved successfully")
     })
-    public ResponseEntity<List<ExpenseResponseDTO>> getExpenses(
+    public ResponseEntity<PagedResponseDTO<ExpenseResponseDTO>> getExpenses(
             @RequestHeader(USER_ID_HEADER) UUID userId,
             @RequestParam(value = "category", required = false) String category,
-            @RequestParam(value = "sort", defaultValue = "date_desc") String sort) {
+            @RequestParam(value = "sort", defaultValue = "date_desc") String sort,
+            @RequestParam(value = "page", defaultValue = "0") @Min(0) Integer page,
+            @RequestParam(value = "size", defaultValue = "20") @Min(1) @Max(100) Integer size) {
 
         GetExpensesFilterDTO filters = GetExpensesFilterDTO.builder()
                 .category(category)
                 .sort(sort)
+                .page(page)
+                .size(size)
                 .build();
 
-        List<Expense> expenses = expenseService.getExpenses(userId, filters);
-        List<ExpenseResponseDTO> response = expenses.stream()
-                .map(expenseMapper::toResponseDTO)
-                .collect(Collectors.toList());
+        Page<Expense> expenses = expenseService.getExpenses(userId, filters);
+        PagedResponseDTO<ExpenseResponseDTO> response = PagedResponseDTO.<ExpenseResponseDTO>builder()
+                .content(expenses.getContent().stream().map(expenseMapper::toResponseDTO).toList())
+                .page(expenses.getNumber())
+                .size(expenses.getSize())
+                .totalElements(expenses.getTotalElements())
+                .totalPages(expenses.getTotalPages())
+                .first(expenses.isFirst())
+                .last(expenses.isLast())
+                .build();
 
         return ResponseEntity.ok(response);
     }

@@ -27,7 +27,10 @@ function App() {
               : 'transition-opacity'
           }
         >
-          <ExpenseDashboard userId={selectedUserId} />
+          <ExpenseDashboard
+            key={selectedUserId || 'no-user'}
+            userId={selectedUserId}
+          />
         </main>
       </div>
     </div>

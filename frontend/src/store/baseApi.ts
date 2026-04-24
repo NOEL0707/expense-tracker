@@ -1,15 +1,12 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-const API_BASE_URL = 'https://expense-tracker-production-4587.up.railway.app/api/v1';
+import { API_BASE_URL } from "@/lib/env";
 
 export const baseApi = createApi({
-  reducerPath: 'api',
+  reducerPath: "api",
   baseQuery: fetchBaseQuery({
     baseUrl: API_BASE_URL,
-    prepareHeaders: (headers) => {
-      return headers;
-    },
   }),
-  tagTypes: ['User', 'Expense'],
+  tagTypes: ["User", "Expense"],
   endpoints: () => ({}),
 });
