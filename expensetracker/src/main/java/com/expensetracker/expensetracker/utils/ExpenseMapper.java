@@ -11,8 +11,10 @@ public interface ExpenseMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "idempotencyKey", ignore = true)
+    @Mapping(target = "user", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     Expense toEntity(CreateExpenseDTO dto);
 
+    @Mapping(target = "userId", source = "user.id")
     ExpenseResponseDTO toResponseDTO(Expense expense);
 }

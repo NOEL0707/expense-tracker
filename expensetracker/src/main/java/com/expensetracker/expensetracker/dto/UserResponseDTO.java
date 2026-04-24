@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -13,13 +12,10 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ExpenseResponseDTO {
+public class UserResponseDTO {
 
     private UUID id;
-    private UUID userId;
-    private Integer amount;
-    private String category;
-    private String description;
-    private LocalDate date;
+    private String name;
+    private String email;
     private LocalDateTime createdAt;
 }

@@ -14,8 +14,12 @@ import java.util.UUID;
 @Repository
 public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
 
-    Optional<Expense> findByIdempotencyKey(String idempotencyKey);
+    Optional<Expense> findByUserIdAndIdempotencyKey(UUID userId, String idempotencyKey);
 
-    @Query("SELECT e FROM Expense e WHERE (:category IS NULL OR e.category = :category)")
-    List<Expense> findExpensesWithFilters(@Param("category") String category, Sort sort);
+    Optional<Expense> findByIdAndUserId(UUID id, UUID userId);
+
+    @Query("SELECT e FROM Expense e WHERE e.user.id = :userId AND (:category IS NULL OR e.category = :category)")
+    List<Expense> findExpensesWithFilters(@Param("userId") UUID userId, @Param("category") String category, Sort sort);
+
+    void deleteByUserId(UUID userId);
 }

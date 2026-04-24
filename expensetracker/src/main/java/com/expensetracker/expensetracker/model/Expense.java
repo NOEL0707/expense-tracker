@@ -11,7 +11,12 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "expenses")
+@Table(
+        name = "expenses",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_expense_user_idempotency", columnNames = {"user_id", "idempotency_key"})
+        }
+)
 @Data
 @Builder
 @NoArgsConstructor
@@ -34,8 +39,12 @@ public class Expense {
     @Column(nullable = false)
     private LocalDate date;
 
-    @Column(unique = true)
+    @Column
     private String idempotencyKey;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private AppUser user;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
